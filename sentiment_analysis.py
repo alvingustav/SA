@@ -2,12 +2,15 @@ import streamlit as st
 import re
 import nltk
 import time
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import joblib
 import gdown
+from PIL import Image
 
 # Judul Aplikasi
 st.title("📊 Analisis Sentimen dengan Naive Bayes")
@@ -32,6 +35,21 @@ st.sidebar.write("""
   - Mengubah teks menjadi lowercase.
   - Menghapus stopwords.
   - Melakukan lemmatization.
+""")
+
+# Informasi Dataset
+st.sidebar.markdown("---")
+st.sidebar.header("📂 Informasi Dataset")
+st.sidebar.write("""
+Dataset yang digunakan: [IMDB Dataset of 50K Movie Reviews](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews?select=IMDB+Dataset.csv)
+
+**Distribusi Label:**
+- Jumlah label:
+  - Positif: 24.884
+  - Negatif: 24.698
+- Persentase:
+  - Positif: 50.19%
+  - Negatif: 49.81%
 """)
 
 # Mengunduh sumber daya NLTK
@@ -97,11 +115,27 @@ if st.button("🚀 Prediksi"):
         except Exception as e:
             st.error(f"⚠️ Terjadi error saat memproses teks: {e}")
 
+# Visualisasi WordCloud dari Dataset
+st.markdown("---")
+st.header("📊 WordCloud dari Dataset")
+st.write("Berikut adalah visualisasi WordCloud dari dataset yang digunakan untuk melatih model.")
+
+# Mengunduh dan menampilkan WordCloud
+WORDCLOUD_URL = "https://drive.google.com/uc?id=1gkeQ6cj87zI7WsU8DF09XuFFSt9MY-oW"
+@st.cache
+def load_wordcloud():
+    gdown.download(WORDCLOUD_URL, "wordcloud.png", quiet=True)
+    return Image.open("wordcloud.png")
+
+wordcloud_image = load_wordcloud()
+st.image(wordcloud_image, caption="WordCloud dari Dataset IMDB", use_column_width=True)
+
 # Tambahkan footer
 st.markdown("---")
 st.write("""
 ### 🛠️ Tentang Aplikasi:
 - Dibuat dengan **Streamlit**.
 - Menggunakan model **Naive Bayes** untuk analisis sentimen.
-- Kode sumber tersedia di [GitHub](https://github.com/alvingustav/SA).
+- Dataset: [IMDB Dataset of 50K Movie Reviews](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews?select=IMDB+Dataset.csv).
+- Kode sumber tersedia di [GitHub](https://github.com).
 """)
