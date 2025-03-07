@@ -1,7 +1,5 @@
 streamlit
 pandas
 nltk
-scikit-learn
-imbalanced-learn
-scipy
 gdown
+scikit-learn
