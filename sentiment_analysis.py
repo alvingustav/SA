@@ -28,8 +28,9 @@ download_nltk_package('wordnet')
 # ========================
 # 1️⃣ MEMUAT MODEL DAN VEKTORISASI DARI GOOGLE DRIVE
 # ========================
-model_url = "https://drive.google.com/file/d/1P4JCHaYLi6URwEW73Y011XQBVlc55lLs"
-vectorizer_url = "https://drive.google.com/file/d/1tKq520rg80gWryvBKyhxWS1LpzXCZIYS"
+model_url = "https://drive.google.com/uc?id=1P4JCHaYLi6URwEW73Y011XQBVlc55lLs"
+vectorizer_url = "https://drive.google.com/uc?id=1tKq520rg80gWryvBKyhxWS1LpzXCZIYS"
+"
 
 model_path = "model.pkl"
 vectorizer_path = "vectorizer.pkl"
