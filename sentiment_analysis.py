@@ -30,7 +30,6 @@ download_nltk_package('wordnet')
 # ========================
 model_url = "https://drive.google.com/uc?id=1P4JCHaYLi6URwEW73Y011XQBVlc55lLs"
 vectorizer_url = "https://drive.google.com/uc?id=1tKq520rg80gWryvBKyhxWS1LpzXCZIYS"
-"
 
 model_path = "model.pkl"
 vectorizer_path = "vectorizer.pkl"
