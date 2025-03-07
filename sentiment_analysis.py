@@ -1,18 +1,11 @@
 import streamlit as st
-import pandas as pd
 import re
 import nltk
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import classification_report, confusion_matrix
-import seaborn as sns
 import joblib
-import os
 import gdown
+import os
 
 # Mengunduh sumber daya NLTK
 nltk.download('stopwords')
@@ -64,15 +57,12 @@ if user_input:
     # Transformasi teks menggunakan vectorizer
     text_vectorized = vectorizer.transform([processed_text])
     
-    # Prediksi sentimen
-    prediction = model.predict(text_vectorized)
+    # Periksa dimensi vektor
+    st.write(f"Shape of text_vectorized: {text_vectorized.shape}")
     
-    # Menampilkan hasil prediksi
-    st.write(f"Prediksi Sentimen: **{prediction[0]}**")
-
-# Menampilkan informasi tambahan
-st.sidebar.title("Tentang Aplikasi Ini")
-st.sidebar.info(
-    "Aplikasi ini menggunakan model Naïve Bayes untuk menganalisis sentimen dari ulasan film. "
-    "Masukkan ulasan film Anda di kotak teks dan aplikasi akan memprediksi apakah ulasan tersebut positif atau negatif."
-)
+    # Prediksi sentimen
+    try:
+        prediction = model.predict(text_vectorized)
+        st.write(f"Prediksi Sentimen: **{prediction[0]}**")
+    except ValueError as e:
+        st.error(f"Error: {e}. Pastikan vectorizer dan model cocok.")
