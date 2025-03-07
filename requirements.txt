@@ -4,3 +4,4 @@ nltk
 gdown
 scikit-learn
 seaborn
+wordcloud
