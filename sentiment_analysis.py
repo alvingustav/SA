@@ -11,6 +11,7 @@ from sklearn.metrics import classification_report
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import GridSearchCV
 import gdown
+import os
 
 # Mengunduh sumber daya NLTK jika belum diunduh
 nltk.download('stopwords')
@@ -24,7 +25,7 @@ url = "https://drive.google.com/file/d/1AzICnuI_WHX_3a7WivGzzFhZcexVTHGZ"
 output = "IMDB_Dataset.csv"
 gdown.download(url, output, quiet=False)
 
-data = pd.read_csv(output, encoding="ISO-8859-1")
+data = pd.read_csv(output, encoding="utf-8", engine="python")
 
 # Menghapus duplikasi dan nilai kosong
 data = data.drop_duplicates(subset=['review'])
