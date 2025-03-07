@@ -70,12 +70,24 @@ def preprocess_text(text):
     tokens = [stemmer.stem(word) for word in tokens]
     return ' '.join(tokens)
 
-def predict_sentiment(text):
-    processed_text = preprocess_text(text)
-    vectorized_text = st.session_state['vectorizer'].transform([processed_text])
-    prediction = st.session_state['model'].predict(vectorized_text)
-    proba = st.session_state['model'].predict_proba(vectorized_text)
-    confidence = max(proba[0]) * 100 if proba is not None else 70.0
+def predict_sentiment(text, model, vectorizer):
+    processed_text = preprocess_text(text)  # Praproses input
+    
+    if not processed_text:  # Handle empty text after processing
+        return "Negatif", 50.0, "Empty text after processing"
+        
+    vectorized_text = vectorizer.transform([processed_text])  # Transformasi ke TF-IDF
+    prediction = model.predict(vectorized_text)  # Prediksi sentimen
+    
+    # Hitung confidence score berdasarkan jenis model
+    if hasattr(model, 'predict_proba'):
+        proba = model.predict_proba(vectorized_text)
+        confidence = max(proba[0]) * 100
+    elif hasattr(model, 'decision_function'):
+        confidence = abs(model.decision_function(vectorized_text)[0]) * 100
+    else:
+        confidence = 70.0  # Nilai default jika tidak ada probabilitas atau margin
+
     sentiment = "Positif" if prediction[0] == 'positive' else "Negatif"
     return sentiment, confidence, processed_text
 
