@@ -24,7 +24,7 @@ url = "https://drive.google.com/file/d/1AzICnuI_WHX_3a7WivGzzFhZcexVTHGZ"
 output = "IMDB_Dataset.csv"
 gdown.download(url, output, quiet=False)
 
-data = pd.read_csv(output, delimiter=",", quotechar='"', encoding="utf-8")
+data = pd.read_csv(output, encoding="ISO-8859-1")
 
 # Menghapus duplikasi dan nilai kosong
 data = data.drop_duplicates(subset=['review'])
