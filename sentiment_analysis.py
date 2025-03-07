@@ -4,7 +4,8 @@ import re
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
-import pickle  # Tambahkan impor pickle
+import pickle
+import gdown
 import os
 
 # Set lokasi penyimpanan NLTK agar tidak bentrok
@@ -14,7 +15,6 @@ if not os.path.exists(nltk_data_path):
 
 nltk.data.path.append(nltk_data_path)
 
-# Cek apakah paket NLTK sudah ada sebelum mengunduh
 def download_nltk_package(package):
     try:
         nltk.data.find(f'tokenizers/{package}')
@@ -26,9 +26,25 @@ download_nltk_package('stopwords')
 download_nltk_package('wordnet')
 
 # ========================
-# 1️⃣ MEMBACA DATASET
+# 1️⃣ MEMUAT MODEL DAN VEKTORISASI DARI GOOGLE DRIVE
 # ========================
-# Bagian ini dapat dihapus jika Anda tidak lagi memerlukan pembacaan dataset
+model_url = "https://drive.google.com/file/d/1P4JCHaYLi6URwEW73Y011XQBVlc55lLs"
+vectorizer_url = "https://drive.google.com/file/d/1tKq520rg80gWryvBKyhxWS1LpzXCZIYS"
+
+model_path = "model.pkl"
+vectorizer_path = "vectorizer.pkl"
+
+if not os.path.exists(model_path):
+    gdown.download(model_url, model_path, quiet=False)
+
+if not os.path.exists(vectorizer_path):
+    gdown.download(vectorizer_url, vectorizer_path, quiet=False)
+
+with open(model_path, 'rb') as model_file:
+    best_model = pickle.load(model_file)
+
+with open(vectorizer_path, 'rb') as vectorizer_file:
+    vectorizer = pickle.load(vectorizer_file)
 
 # ========================
 # 2️⃣ FUNGSI PRAPROSES TEKS
@@ -46,16 +62,7 @@ def preprocess_text(text):
     return ' '.join(tokens)
 
 # ========================
-# 3️⃣ MEMUAT MODEL DAN VEKTORISASI YANG TELAH DISIMPAN
-# ========================
-with open('model.pkl', 'rb') as model_file:
-    best_model = pickle.load(model_file)
-
-with open('vectorizer.pkl', 'rb') as vectorizer_file:
-    vectorizer = pickle.load(vectorizer_file)
-
-# ========================
-# 4️⃣ FUNGSI PREDIKSI SENTIMEN
+# 3️⃣ FUNGSI PREDIKSI SENTIMEN
 # ========================
 def predict_sentiment(text):
     processed_text = preprocess_text(text)  # Praproses input
@@ -64,15 +71,13 @@ def predict_sentiment(text):
     return "Positif" if prediction[0] == 'positive' else "Negatif"
 
 # ========================
-# 5️⃣ MEMBUAT UI STREAMLIT
+# 4️⃣ MEMBUAT UI STREAMLIT
 # ========================
 st.title("🎬 Analisis Sentimen Ulasan Film")
 st.write("Masukkan ulasan film di bawah ini, lalu sistem akan memprediksi apakah sentimennya positif atau negatif.")
 
-# Input dari pengguna
 user_input = st.text_area("Masukkan ulasan film:", "")
 
-# Jika tombol ditekan, lakukan prediksi
 if st.button("Prediksi Sentimen"):
     if user_input.strip() == "":
         st.warning("Harap masukkan teks ulasan terlebih dahulu!")
