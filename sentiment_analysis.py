@@ -103,5 +103,5 @@ st.write("""
 ### 🛠️ Tentang Aplikasi:
 - Dibuat dengan **Streamlit**.
 - Menggunakan model **Naive Bayes** untuk analisis sentimen.
-- Kode sumber tersedia di [GitHub](https://github.com).
+- Kode sumber tersedia di [GitHub](https://github.com/alvingustav/SA).
 """)
