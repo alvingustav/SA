@@ -1,7 +1,9 @@
 streamlit
 pandas
 nltk
-gdown
 scikit-learn
+matplotlib
 seaborn
 wordcloud
+gdown
+joblib
