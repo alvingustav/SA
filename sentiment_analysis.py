@@ -13,10 +13,23 @@ from sklearn.model_selection import GridSearchCV
 import gdown
 import os
 
-# Mengunduh sumber daya NLTK jika belum diunduh
-nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('punkt')
+# Set lokasi penyimpanan NLTK agar tidak bentrok
+nltk_data_path = os.path.expanduser("~/.nltk_data")
+if not os.path.exists(nltk_data_path):
+    os.makedirs(nltk_data_path)
+
+nltk.data.path.append(nltk_data_path)
+
+# Cek apakah paket NLTK sudah ada sebelum mengunduh
+def download_nltk_package(package):
+    try:
+        nltk.data.find(f'tokenizers/{package}')
+    except LookupError:
+        nltk.download(package, download_dir=nltk_data_path)
+
+download_nltk_package('punkt')
+download_nltk_package('stopwords')
+download_nltk_package('wordnet')
 
 # ========================
 # 1️⃣ MEMBACA DATASET
