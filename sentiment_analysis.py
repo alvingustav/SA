@@ -5,17 +5,24 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 import pickle
-import gdown
+import requests
+import io
 import os
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
 
 # Set page config
 st.set_page_config(
     page_title="Analisis Sentimen Ulasan Film",
     page_icon="🎬",
-    layout="centered"  # Changed to centered for better mobile experience
+    layout="centered"
 )
 
-# Function to create directory and setup NLTK
+# Progress indicator
+progress_placeholder = st.empty()
+progress_bar = progress_placeholder.progress(0)
+
+# Function to setup NLTK
 @st.cache_resource
 def setup_nltk():
     # Set tempat penyimpanan NLTK di lokasi yang dapat diakses oleh Streamlit Cloud
@@ -26,56 +33,51 @@ def setup_nltk():
     nltk.data.path.append(nltk_data_path)
     
     # Download required NLTK packages
-    for package in ['punkt', 'stopwords', 'wordnet']:
+    packages = ['punkt', 'stopwords', 'wordnet']
+    for i, package in enumerate(packages):
+        progress_bar.progress((i / len(packages)) * 0.5)  # 50% of progress for NLTK setup
         try:
             nltk.data.find(f'tokenizers/{package}')
         except LookupError:
-            with st.spinner(f'Downloading NLTK package: {package}...'):
-                nltk.download(package, download_dir=nltk_data_path)
+            nltk.download(package, download_dir=nltk_data_path)
     
+    progress_bar.progress(0.5)  # 50% complete
     return "NLTK setup complete"
 
 # Initialize NLTK
-with st.spinner('Menyiapkan NLTK resources...'):
-    setup_status = setup_nltk()
+setup_status = setup_nltk()
 
-# Download model dan vectorizer function
+# ========================
+# 1️⃣ BUAT MODEL SEDERHANA SEBAGAI FALLBACK
+# ========================
 @st.cache_resource
-def load_models():
-    model_path = "./model.pkl"
-    vectorizer_path = "./vectorizer.pkl"
+def create_fallback_model():
+    # Contoh data sederhana untuk melatih model fallback
+    simple_data = [
+        ("This movie was amazing and I loved it", "positive"),
+        ("Great acting and storyline", "positive"),
+        ("I enjoyed watching this film", "positive"),
+        ("Best movie I've seen all year", "positive"),
+        ("Excellent cinematography and direction", "positive"),
+        ("The movie was terrible and boring", "negative"),
+        ("I didn't like the characters at all", "negative"),
+        ("Poor script and bad acting", "negative"),
+        ("Waste of time and money", "negative"),
+        ("Disappointing plot with too many holes", "negative")
+    ]
     
-    # Show download status
-    with st.spinner('Mengunduh model dari Google Drive...'):
-        # Gunakan URL langsung dari Google Drive dengan gdown
-        model_url = "https://drive.google.com/uc?id=1P4JCHaYLi6URwEW73Y011XQBVlc55lLs"
-        vectorizer_url = "https://drive.google.com/uc?id=1tKq520rg80gWryvBKyhxWS1LpzXCZIYS"
-        
-        if not os.path.exists(model_path):
-            gdown.download(model_url, model_path, quiet=False)
-        
-        if not os.path.exists(vectorizer_path):
-            gdown.download(vectorizer_url, vectorizer_path, quiet=False)
+    texts, labels = zip(*simple_data)
     
-    # Load the models
-    try:
-        with open(model_path, 'rb') as model_file:
-            best_model = pickle.load(model_file)
-        
-        with open(vectorizer_path, 'rb') as vectorizer_file:
-            vectorizer = pickle.load(vectorizer_file)
-        
-        return best_model, vectorizer
-    except Exception as e:
-        st.error(f"Error loading models: {e}")
-        return None, None
-
-# Show loading indicator while loading models
-with st.spinner('Memuat model...'):
-    best_model, vectorizer = load_models()
-
-# Check if models loaded successfully
-models_loaded = best_model is not None and vectorizer is not None
+    # Buat vectorizer dan model
+    vectorizer = TfidfVectorizer(max_features=1000)
+    X = vectorizer.fit_transform(texts)
+    
+    model = LogisticRegression()
+    model.fit(X, labels)
+    
+    progress_bar.progress(0.8)  # 80% complete
+    
+    return model, vectorizer
 
 # ========================
 # 2️⃣ FUNGSI PRAPROSES TEKS
@@ -95,15 +97,15 @@ def preprocess_text(text):
 # ========================
 # 3️⃣ FUNGSI PREDIKSI SENTIMEN
 # ========================
-def predict_sentiment(text):
+def predict_sentiment(text, model, vectorizer):
     processed_text = preprocess_text(text)  # Praproses input
     vectorized_text = vectorizer.transform([processed_text])  # Transformasi ke TF-IDF
-    prediction = best_model.predict(vectorized_text)  # Prediksi sentimen
+    prediction = model.predict(vectorized_text)  # Prediksi sentimen
     
     # Get probability scores if the model supports it
     try:
-        if hasattr(best_model, 'predict_proba'):
-            proba = best_model.predict_proba(vectorized_text)
+        if hasattr(model, 'predict_proba'):
+            proba = model.predict_proba(vectorized_text)
             confidence = max(proba[0]) * 100
         else:
             confidence = None
@@ -113,17 +115,25 @@ def predict_sentiment(text):
     sentiment = "Positif" if prediction[0] == 'positive' else "Negatif"
     return sentiment, confidence, processed_text
 
+# Load or create model
+try:
+    # Coba buat model fallback
+    fallback_model, fallback_vectorizer = create_fallback_model()
+    models_loaded = True
+    st.session_state['model'] = fallback_model
+    st.session_state['vectorizer'] = fallback_vectorizer
+    progress_bar.progress(1.0)  # 100% complete
+    progress_placeholder.empty()  # Remove progress bar
+except Exception as e:
+    st.error(f"Error creating fallback model: {e}")
+    models_loaded = False
+    progress_placeholder.empty()
+
 # ========================
 # 4️⃣ MEMBUAT UI STREAMLIT
 # ========================
 st.title("🎬 Analisis Sentimen Ulasan Film")
-st.write("Masukkan ulasan film di bawah ini, lalu sistem akan memprediksi apakah sentimennya positif atau negatif.")
-
-# Create container for status messages
-status_container = st.empty()
-
-if not models_loaded:
-    status_container.warning("⚠️ Model tidak berhasil dimuat. Harap refresh halaman.")
+st.write("Masukkan ulasan film dalam Bahasa Inggris di bawah ini, lalu sistem akan memprediksi apakah sentimennya positif atau negatif.")
 
 # Create tab layout
 tab1, tab2 = st.tabs(["Prediksi Sentimen", "Info Aplikasi"])
@@ -147,7 +157,9 @@ with tab1:
             if models_loaded:
                 with st.spinner('Menganalisis sentimen...'):
                     try:
-                        hasil_prediksi, confidence, processed_text = predict_sentiment(user_input)
+                        model = st.session_state['model']
+                        vectorizer = st.session_state['vectorizer']
+                        hasil_prediksi, confidence, processed_text = predict_sentiment(user_input, model, vectorizer)
                         
                         # Display the result in a nice container
                         with result_container.container():
@@ -183,7 +195,7 @@ with tab1:
 with tab2:
     st.markdown("### Tentang Aplikasi")
     st.markdown("""
-    Aplikasi ini menggunakan model machine learning untuk menganalisis sentimen dari ulasan film dalam Bahasa Inggris.
+    Aplikasi ini menggunakan model machine learning sederhana untuk menganalisis sentimen dari ulasan film dalam Bahasa Inggris.
     
     **Fitur aplikasi:**
     - Analisis sentimen positif/negatif
@@ -199,15 +211,32 @@ with tab2:
     """)
     
     st.markdown("### Contoh Ulasan")
-    st.markdown("""
-    **Contoh ulasan positif:**
-    - "This movie was fantastic! I loved the storyline and the acting was superb."
-    - "One of the best films I've seen this year. Great direction and amazing performances."
     
-    **Contoh ulasan negatif:**
-    - "I was disappointed by the plot and the characters were poorly developed."
-    - "The special effects were terrible and the storyline made no sense."
-    """)
+    examples = {
+        "Positif": [
+            "This movie was fantastic! I loved the storyline and the acting was superb.",
+            "One of the best films I've seen this year. Great direction and amazing performances.",
+            "The special effects were amazing and the plot was engaging from start to finish."
+        ],
+        "Negatif": [
+            "I was disappointed by the plot and the characters were poorly developed.",
+            "The special effects were terrible and the storyline made no sense.",
+            "Waste of time and money. The acting was wooden and the dialogue was terrible."
+        ]
+    }
+    
+    for sentiment, texts in examples.items():
+        st.markdown(f"**Contoh ulasan {sentiment.lower()}:**")
+        for i, text in enumerate(texts):
+            if st.button(f"Gunakan contoh {sentiment.lower()} #{i+1}", key=f"{sentiment}_{i}"):
+                # Set to session state and rerun to populate the text area
+                st.session_state['example_text'] = text
+                st.experimental_rerun()
+    
+    # Check if example text exists in session state
+    if 'example_text' in st.session_state:
+        # This will be executed after the rerun
+        st.session_state['user_input'] = st.session_state['example_text']
 
 # Add footer
 st.markdown("---")
