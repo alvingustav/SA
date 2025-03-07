@@ -4,9 +4,6 @@ import re
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
-import pickle
-import requests
-import io
 import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -18,41 +15,36 @@ st.set_page_config(
     layout="centered"
 )
 
-# Progress indicator
-progress_placeholder = st.empty()
-progress_bar = progress_placeholder.progress(0)
+# Setup state for first run checks
+if 'setup_done' not in st.session_state:
+    st.session_state['setup_done'] = False
+    
+if 'model_ready' not in st.session_state:
+    st.session_state['model_ready'] = False
 
-# Function to setup NLTK
-@st.cache_resource
+# Setup NLTK - removed caching to avoid errors
 def setup_nltk():
-    # Set tempat penyimpanan NLTK di lokasi yang dapat diakses oleh Streamlit Cloud
-    nltk_data_path = "./.nltk_data"
-    if not os.path.exists(nltk_data_path):
-        os.makedirs(nltk_data_path)
+    # NLTK setup - simplified
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt')
+        
+    try:
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        nltk.download('stopwords')
+        
+    try:
+        nltk.data.find('corpora/wordnet')
+    except LookupError:
+        nltk.download('wordnet')
     
-    nltk.data.path.append(nltk_data_path)
-    
-    # Download required NLTK packages
-    packages = ['punkt', 'stopwords', 'wordnet']
-    for i, package in enumerate(packages):
-        progress_bar.progress((i / len(packages)) * 0.5)  # 50% of progress for NLTK setup
-        try:
-            nltk.data.find(f'tokenizers/{package}')
-        except LookupError:
-            nltk.download(package, download_dir=nltk_data_path)
-    
-    progress_bar.progress(0.5)  # 50% complete
-    return "NLTK setup complete"
+    return True
 
-# Initialize NLTK
-setup_status = setup_nltk()
-
-# ========================
-# 1️⃣ BUAT MODEL SEDERHANA SEBAGAI FALLBACK
-# ========================
-@st.cache_resource
-def create_fallback_model():
-    # Contoh data sederhana untuk melatih model fallback
+# Create simple model function - removed caching
+def create_simple_model():
+    # Contoh data sederhana untuk melatih model sentiment
     simple_data = [
         ("This movie was amazing and I loved it", "positive"),
         ("Great acting and storyline", "positive"),
@@ -75,62 +67,72 @@ def create_fallback_model():
     model = LogisticRegression()
     model.fit(X, labels)
     
-    progress_bar.progress(0.8)  # 80% complete
-    
     return model, vectorizer
 
-# ========================
-# 2️⃣ FUNGSI PRAPROSES TEKS
-# ========================
+# Show loading message when app first loads
+if not st.session_state['setup_done']:
+    setup_container = st.container()
+    with setup_container:
+        setup_message = st.info("Menyiapkan aplikasi. Mohon tunggu sebentar...")
+        
+        # Setup NLTK packages
+        nltk_status = setup_nltk()
+        
+        # Create simple model
+        try:
+            model, vectorizer = create_simple_model()
+            st.session_state['model'] = model
+            st.session_state['vectorizer'] = vectorizer
+            st.session_state['model_ready'] = True
+        except Exception as e:
+            st.error(f"Terjadi kesalahan saat membuat model: {str(e)}")
+        
+        st.session_state['setup_done'] = True
+        
+        # Remove setup message after done
+        setup_message.empty()
+
+# Functions for text preprocessing and prediction
 def preprocess_text(text):
     text = re.sub(r'[^a-zA-Z\s]', '', text)  # Hanya huruf dan spasi
     text = text.lower()  # Lowercase
     tokens = nltk.word_tokenize(text)  # Tokenisasi
+    
+    # Get stopwords
     stop_words = set(stopwords.words('english'))
     tokens = [word for word in tokens if word not in stop_words]
+    
+    # Lemmatization
     lemmatizer = WordNetLemmatizer()
     tokens = [lemmatizer.lemmatize(word) for word in tokens]
+    
+    # Stemming 
     stemmer = PorterStemmer()
     tokens = [stemmer.stem(word) for word in tokens]
+    
     return ' '.join(tokens)
 
-# ========================
-# 3️⃣ FUNGSI PREDIKSI SENTIMEN
-# ========================
 def predict_sentiment(text, model, vectorizer):
     processed_text = preprocess_text(text)  # Praproses input
+    
+    if not processed_text:  # Handle empty text after processing
+        return "Negatif", 50.0, "Empty text after processing"
+        
     vectorized_text = vectorizer.transform([processed_text])  # Transformasi ke TF-IDF
     prediction = model.predict(vectorized_text)  # Prediksi sentimen
     
-    # Get probability scores if the model supports it
+    # Get probability scores
     try:
-        if hasattr(model, 'predict_proba'):
-            proba = model.predict_proba(vectorized_text)
-            confidence = max(proba[0]) * 100
-        else:
-            confidence = None
+        proba = model.predict_proba(vectorized_text)
+        confidence = max(proba[0]) * 100
     except:
-        confidence = None
+        confidence = 70.0  # Default confidence
     
     sentiment = "Positif" if prediction[0] == 'positive' else "Negatif"
     return sentiment, confidence, processed_text
 
-# Load or create model
-try:
-    # Coba buat model fallback
-    fallback_model, fallback_vectorizer = create_fallback_model()
-    models_loaded = True
-    st.session_state['model'] = fallback_model
-    st.session_state['vectorizer'] = fallback_vectorizer
-    progress_bar.progress(1.0)  # 100% complete
-    progress_placeholder.empty()  # Remove progress bar
-except Exception as e:
-    st.error(f"Error creating fallback model: {e}")
-    models_loaded = False
-    progress_placeholder.empty()
-
 # ========================
-# 4️⃣ MEMBUAT UI STREAMLIT
+# APLIKASI UTAMA
 # ========================
 st.title("🎬 Analisis Sentimen Ulasan Film")
 st.write("Masukkan ulasan film dalam Bahasa Inggris di bawah ini, lalu sistem akan memprediksi apakah sentimennya positif atau negatif.")
@@ -154,7 +156,7 @@ with tab1:
         if user_input.strip() == "":
             result_container.warning("⚠️ Harap masukkan teks ulasan terlebih dahulu!")
         else:
-            if models_loaded:
+            if st.session_state['model_ready']:
                 with st.spinner('Menganalisis sentimen...'):
                     try:
                         model = st.session_state['model']
@@ -170,8 +172,7 @@ with tab1:
                                 st.error(f"🎯 Prediksi Sentimen: {hasil_prediksi}")
                                 emoji = "😔"
                             
-                            if confidence is not None:
-                                st.metric("Tingkat kepercayaan", f"{confidence:.2f}%")
+                            st.metric("Tingkat kepercayaan", f"{confidence:.1f}%")
                             
                             st.markdown(f"{emoji} **Ulasan Anda:** {user_input}")
                             
@@ -212,31 +213,37 @@ with tab2:
     
     st.markdown("### Contoh Ulasan")
     
-    examples = {
-        "Positif": [
-            "This movie was fantastic! I loved the storyline and the acting was superb.",
-            "One of the best films I've seen this year. Great direction and amazing performances.",
-            "The special effects were amazing and the plot was engaging from start to finish."
-        ],
-        "Negatif": [
-            "I was disappointed by the plot and the characters were poorly developed.",
-            "The special effects were terrible and the storyline made no sense.",
-            "Waste of time and money. The acting was wooden and the dialogue was terrible."
-        ]
-    }
+    # Example reviews
+    st.markdown("**Contoh ulasan positif:**")
+    positive_examples = [
+        "This movie was fantastic! I loved the storyline and the acting was superb.",
+        "One of the best films I've seen this year. Great direction and amazing performances.",
+        "The special effects were amazing and the plot was engaging from start to finish."
+    ]
     
-    for sentiment, texts in examples.items():
-        st.markdown(f"**Contoh ulasan {sentiment.lower()}:**")
-        for i, text in enumerate(texts):
-            if st.button(f"Gunakan contoh {sentiment.lower()} #{i+1}", key=f"{sentiment}_{i}"):
-                # Set to session state and rerun to populate the text area
-                st.session_state['example_text'] = text
-                st.experimental_rerun()
+    for i, example in enumerate(positive_examples):
+        if st.button(f"Gunakan contoh positif #{i+1}", key=f"pos_{i}"):
+            st.session_state['example_text'] = example
+            st.experimental_rerun()
     
-    # Check if example text exists in session state
-    if 'example_text' in st.session_state:
-        # This will be executed after the rerun
-        st.session_state['user_input'] = st.session_state['example_text']
+    st.markdown("**Contoh ulasan negatif:**")
+    negative_examples = [
+        "I was disappointed by the plot and the characters were poorly developed.",
+        "The special effects were terrible and the storyline made no sense.",
+        "Waste of time and money. The acting was wooden and the dialogue was terrible."
+    ]
+    
+    for i, example in enumerate(negative_examples):
+        if st.button(f"Gunakan contoh negatif #{i+1}", key=f"neg_{i}"):
+            st.session_state['example_text'] = example
+            st.experimental_rerun()
+
+# Handle example text selection
+if 'example_text' in st.session_state:
+    # Go to first tab
+    st.session_state.user_input = st.session_state.example_text
+    # Clear example text to avoid infinite rerun
+    del st.session_state['example_text']
 
 # Add footer
 st.markdown("---")
