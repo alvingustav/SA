@@ -10,6 +10,7 @@ from sklearn.svm import LinearSVC
 from sklearn.metrics import classification_report
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import GridSearchCV
+import gdown
 
 # Mengunduh sumber daya NLTK jika belum diunduh
 nltk.download('stopwords')
@@ -19,7 +20,11 @@ nltk.download('punkt')
 # ========================
 # 1️⃣ MEMBACA DATASET
 # ========================
-data = pd.read_csv(r"C:\Users\HP Pavilion\Downloads\IMDB Dataset.csv")
+url = "https://drive.google.com/file/d/1AzICnuI_WHX_3a7WivGzzFhZcexVTHGZ/view?usp=sharing"
+output = "IMDB_Dataset.csv"
+gdown.download(url, output, quiet=False)
+
+data = pd.read_csv(output)
 
 # Menghapus duplikasi dan nilai kosong
 data = data.drop_duplicates(subset=['review'])
