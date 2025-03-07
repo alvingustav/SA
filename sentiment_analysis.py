@@ -44,7 +44,6 @@ except Exception as e:
     print(f"Error saat membaca CSV: {e}")
 
 # Menghapus duplikasi dan nilai kosong
-data = data.drop_duplicates(subset=['review'])
 data = data.dropna()
 
 # ========================
