@@ -58,7 +58,7 @@ def preprocess_text(text):
 @st.cache
 def load_model_and_vectorizer():
     MODEL_URL = "https://drive.google.com/uc?id=1gIMlAIZVA4paIw0uNBYOf07NGNOVvjje"
-    VECTORIZER_URL = "https://drive.google.com/uc?id=1tKq520rg80gWryvBKyhxWS1LpzXCZIYS"
+    VECTORIZER_URL = "https://drive.google.com/uc?id=16fDDLyhz3V2JeTU0Q0Ovul7oFHUyFkui"
     
     # Mengunduh file
     gdown.download(MODEL_URL, "model.pkl", quiet=True)
