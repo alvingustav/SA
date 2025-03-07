@@ -12,8 +12,8 @@ from sklearn.svm import SVC
 nltk.download('punkt_tab') 
 
 # URL Model dan Vectorizer
-MODEL_URL = "https://drive.google.com/uc?id=1P4JCHaYLi6URwEW73Y011XQBVlc55lLs"
-VECTORIZER_URL = "https://drive.google.com/uc?id=1tKq520rg80gWryvBKyhxWS1LpzXCZIYS"
+MODEL_URL = "https://drive.google.com/uc?id=1gIMlAIZVA4paIw0uNBYOf07NGNOVvjje"
+VECTORIZER_URL = "https://drive.google.com/uc?id=1MVLjr5OVI-KWFh2YzIODl1aa5PuDGuAs"
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Analisis Sentimen Ulasan Film", page_icon="🎬", layout="centered")
