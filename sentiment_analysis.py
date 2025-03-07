@@ -16,6 +16,7 @@ from wordcloud import WordCloud
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('punkt')
+nltk.download('punkt_tab')
 
 # URL Model dan Vectorizer
 MODEL_URL = "https://drive.google.com/uc?id=1gIMlAIZVA4paIw0uNBYOf07NGNOVvjje"
