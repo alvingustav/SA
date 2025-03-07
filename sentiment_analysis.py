@@ -81,30 +81,24 @@ if st.button("Prediksi"):
     # Preprocessing teks input
     processed_text = preprocess_text(user_input)
     # Transformasi teks menggunakan vectorizer
-    text_vectorized = vectorizer.transform([processed_text])
-    # Prediksi sentimen
-    prediction = model.predict(text_vectorized)[0]
-    
-    # Menampilkan hasil prediksi
-    st.subheader("Hasil Prediksi")
-    if prediction == "positive":
-        st.success("Sentimen: **Positif** 😊")
-    else:
-        st.error("Sentimen: **Negatif** 😠")
+    try:
+        text_vectorized = vectorizer.transform([processed_text])
+        # Prediksi sentimen
+        prediction = model.predict(text_vectorized)[0]
+        
+        # Menampilkan hasil prediksi
+        st.subheader("Hasil Prediksi")
+        if prediction == "positive":
+            st.success("Sentimen: **Positif** 😊")
+        else:
+            st.error("Sentimen: **Negatif** 😠")
 
-    # Visualisasi WordCloud
-    st.subheader("Visualisasi WordCloud")
-    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(processed_text)
-    plt.figure(figsize=(10, 5))
-    plt.imshow(wordcloud, interpolation='bilinear')
-    plt.axis('off')
-    st.pyplot(plt)
-
-# Informasi tambahan
-st.markdown("---")
-st.write("""
-### Tentang Aplikasi:
-- Aplikasi ini dibuat menggunakan **Streamlit**.
-- Model machine learning dijalankan di backend.
-- Kode sumber tersedia di [GitHub](https://github.com).
-""")
+        # Visualisasi WordCloud
+        st.subheader("Visualisasi WordCloud")
+        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(processed_text)
+        plt.figure(figsize=(10, 5))
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis('off')
+        st.pyplot(plt)
+    except Exception as e:
+        st.error(f"Terjadi error saat memproses teks: {e}")
