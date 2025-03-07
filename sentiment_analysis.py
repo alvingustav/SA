@@ -93,12 +93,5 @@ if st.button("Prediksi"):
         else:
             st.error("Sentimen: **Negatif** 😠")
 
-        # Visualisasi WordCloud
-        st.subheader("Visualisasi WordCloud")
-        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(processed_text)
-        plt.figure(figsize=(10, 5))
-        plt.imshow(wordcloud, interpolation='bilinear')
-        plt.axis('off')
-        st.pyplot(plt)
     except Exception as e:
         st.error(f"Terjadi error saat memproses teks: {e}")
