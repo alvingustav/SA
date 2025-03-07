@@ -13,8 +13,8 @@ nltk.download('wordnet')
 nltk.download('punkt')
 
 # URL Model dan Vectorizer
-MODEL_URL = "https://drive.google.com/uc?id=1gIMlAIZVA4paIw0uNBYOf07NGNOVvjje"
-VECTORIZER_URL = "https://drive.google.com/uc?id=1MVLjr5OVI-KWFh2YzIODl1aa5PuDGuAs"
+MODEL_URL = "https://drive.google.com/uc?id=1P4JCHaYLi6URwEW73Y011XQBVlc55lLs"
+VECTORIZER_URL = "https://drive.google.com/uc?id=1tKq520rg80gWryvBKyhxWS1LpzXCZIYS"
 
 # Mengunduh model dan vectorizer
 @st.cache(allow_output_mutation=True)
