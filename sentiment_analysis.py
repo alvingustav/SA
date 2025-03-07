@@ -108,7 +108,7 @@ st.write("### 🎭 Prediksi Sentimen Ulasan Tunggal")
 user_input = st.text_area("Masukkan ulasan film:", "The movie was amazing, I loved it!")
 if st.button("Prediksi Sentimen"):
     cleaned_text = preprocess_text(user_input)
-    vectorized_text = vectorizer.fit_transform([cleaned_text])
+    vectorized_text = vectorizer.transform([cleaned_text])
     prediction = model.predict(vectorized_text)[0]
     sentiment_label = "Positif" if prediction == 1 else "Negatif"
     st.write(f"🎯 **Hasil Prediksi:** {sentiment_label}")
