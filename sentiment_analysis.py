@@ -1,8 +1,6 @@
 import streamlit as st
 import re
 import nltk
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
