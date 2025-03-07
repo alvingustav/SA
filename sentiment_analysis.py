@@ -1,6 +1,7 @@
 import streamlit as st
 import re
 import nltk
+import time
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -9,21 +10,21 @@ import joblib
 import gdown
 
 # Judul Aplikasi
-st.title("Analisis Sentimen dengan Naive Bayes")
+st.title("📊 Analisis Sentimen dengan Naive Bayes")
 st.write("""
 Aplikasi ini memprediksi sentimen dari teks yang Anda masukkan menggunakan model Naive Bayes.
 Anda dapat memasukkan kalimat dan melihat prediksi apakah kalimat tersebut memiliki sentimen **Positif** atau **Negatif**.
 """)
 
 # Sidebar untuk dokumentasi
-st.sidebar.title("Dokumentasi")
+st.sidebar.title("📖 Dokumentasi")
 st.sidebar.write("""
-### Cara Menggunakan:
+### 🛠️ Cara Menggunakan:
 1. Masukkan teks atau kalimat di kolom input.
 2. Klik tombol **Prediksi**.
 3. Hasil prediksi akan muncul di bawah, menunjukkan apakah sentimennya **Positif** atau **Negatif**.
 
-### Informasi Model:
+### ℹ️ Informasi Model:
 - Model yang digunakan adalah **Naive Bayes**.
 - Model telah dilatih sebelumnya menggunakan dataset ulasan film IMDB.
 - Preprocessing teks meliputi:
@@ -71,25 +72,36 @@ def load_model_and_vectorizer():
 model, vectorizer = load_model_and_vectorizer()
 
 # Input teks dari pengguna
-st.header("Masukkan Teks untuk Prediksi")
-user_input = st.text_area("Masukkan teks di sini:", "This movie was fantastic! The acting was top-notch and the story was very engaging.")
+st.header("✍️ Masukkan Teks untuk Prediksi")
+user_input = st.text_area("Masukkan teks di sini:", "This movie was fantastic! The acting was top-notch and the story was very engaging.", height=150)
 
 # Tombol untuk prediksi
-if st.button("Prediksi"):
-    # Preprocessing teks input
-    processed_text = preprocess_text(user_input)
-    # Transformasi teks menggunakan vectorizer
-    try:
-        text_vectorized = vectorizer.transform([processed_text])
-        # Prediksi sentimen
-        prediction = model.predict(text_vectorized)[0]
-        
-        # Menampilkan hasil prediksi
-        st.subheader("Hasil Prediksi")
-        if prediction == "positive":
-            st.success("Sentimen: **Positif** 😊")
-        else:
-            st.error("Sentimen: **Negatif** 😠")
+if st.button("🚀 Prediksi"):
+    with st.spinner("Sedang memproses..."):  # Animasi loading
+        time.sleep(1)  # Simulasi proses yang memakan waktu
+        # Preprocessing teks input
+        processed_text = preprocess_text(user_input)
+        # Transformasi teks menggunakan vectorizer
+        try:
+            text_vectorized = vectorizer.transform([processed_text])
+            # Prediksi sentimen
+            prediction = model.predict(text_vectorized)[0]
+            
+            # Menampilkan hasil prediksi
+            st.subheader("🎯 Hasil Prediksi")
+            if prediction == "positive":
+                st.success("✅ Sentimen: **Positif** 😊")
+            else:
+                st.error("❌ Sentimen: **Negatif** 😠")
 
-    except Exception as e:
-        st.error(f"Terjadi error saat memproses teks: {e}")
+        except Exception as e:
+            st.error(f"⚠️ Terjadi error saat memproses teks: {e}")
+
+# Tambahkan footer
+st.markdown("---")
+st.write("""
+### 🛠️ Tentang Aplikasi:
+- Dibuat dengan **Streamlit**.
+- Menggunakan model **Naive Bayes** untuk analisis sentimen.
+- Kode sumber tersedia di [GitHub](https://github.com).
+""")
