@@ -72,7 +72,7 @@ def preprocess_text(text):
     return ' '.join(tokens)
 
 # Mengunduh model dan vectorizer dari Google Drive
-@st.cache
+@st.cache_data
 def load_model_and_vectorizer():
     MODEL_URL = "https://drive.google.com/uc?id=1gIMlAIZVA4paIw0uNBYOf07NGNOVvjje"
     VECTORIZER_URL = "https://drive.google.com/uc?id=16fDDLyhz3V2JeTU0Q0Ovul7oFHUyFkui"
@@ -139,3 +139,4 @@ st.write("""
 - Dataset: [IMDB Dataset of 50K Movie Reviews](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews?select=IMDB+Dataset.csv).
 - Kode sumber tersedia di [GitHub](https://github.com).
 """)
+
