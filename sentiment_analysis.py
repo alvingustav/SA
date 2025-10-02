@@ -122,7 +122,7 @@ st.write("Berikut adalah visualisasi WordCloud dari dataset yang digunakan untuk
 
 # Mengunduh dan menampilkan WordCloud
 WORDCLOUD_URL = "https://drive.google.com/uc?id=1gkeQ6cj87zI7WsU8DF09XuFFSt9MY-oW"
-@st.cache
+@st.cache_data
 def load_wordcloud():
     gdown.download(WORDCLOUD_URL, "wordcloud.png", quiet=True)
     return Image.open("wordcloud.png")
@@ -139,4 +139,5 @@ st.write("""
 - Dataset: [IMDB Dataset of 50K Movie Reviews](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews?select=IMDB+Dataset.csv).
 - Kode sumber tersedia di [GitHub](https://github.com).
 """)
+
 
